@@ -1,2 +1,11 @@
-venv
+venv/
+
+__pycache__/
+
 .env
+
+logs/
+
+trained_models/
+
+*.pyc
