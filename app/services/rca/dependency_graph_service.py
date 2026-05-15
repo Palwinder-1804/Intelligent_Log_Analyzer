@@ -1,10 +1,9 @@
 import networkx as nx
 
 
-dependency_graph = nx.DiGraph()
-
-
 def build_dependency_graph(parsed_logs):
+
+    dependency_graph = nx.DiGraph()
 
     services = []
 

@@ -11,10 +11,6 @@ from app.services.rag.retrieval_service import (
     retrieve_similar_logs
 )
 
-from app.services.rag.dataset_ingestion_service import (
-    ingest_dataset_to_rag
-)
-
 router = APIRouter(
     prefix="/rag",
     tags=["RAG"]

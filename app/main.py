@@ -1,3 +1,9 @@
+import os
+
+# Suppress TensorFlow oneDNN info logs before TF is imported via anomaly routes
+os.environ.setdefault("TF_ENABLE_ONEDNN_OPTS", "0")
+os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -27,7 +33,10 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup_event():
-    bootstrap_knowledge_base()
+    try:
+        bootstrap_knowledge_base()
+    except Exception as exc:
+        print(f"Knowledge base bootstrap skipped: {exc}")
 
 app.include_router(auth_router)
 app.include_router(user_router)
@@ -35,7 +44,7 @@ app.include_router(logs_router)
 app.include_router(anomaly_router)
 app.include_router(rag_router)
 app.include_router(llm_router)
-app.include_router(rca_router)
+app.include_router(rca_router)  
 
 @app.get("/")
 async def root():
