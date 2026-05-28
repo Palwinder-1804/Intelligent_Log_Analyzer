@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import (
     APIRouter,
     Depends
@@ -23,7 +24,7 @@ async def search_logs(
     current_user=Depends(get_current_user)
 ):
 
-    results = retrieve_similar_logs(query)
+    results = await asyncio.to_thread(retrieve_similar_logs, query)
 
     formatted_results = []
 

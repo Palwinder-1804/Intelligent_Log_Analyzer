@@ -1,9 +1,10 @@
 import os
 
 
-def load_log_dataset(dataset_path):
+def load_log_dataset(dataset_path, max_lines: int = None):
 
     logs = []
+    total_lines = 0
 
     for root, _, files in os.walk(dataset_path):
 
@@ -20,6 +21,10 @@ def load_log_dataset(dataset_path):
                     errors="ignore"
                 ) as f:
 
-                    logs.extend(f.readlines())
+                    for line in f:
+                        logs.append(line)
+                        total_lines += 1
+                        if max_lines and total_lines >= max_lines:
+                            return logs
 
     return logs

@@ -12,7 +12,7 @@ from app.services.rag.chunking_service import (
     chunk_logs
 )
 
-from app.services.rag.chroma_service import (
+from app.services.rag.vector_store_service import (
     log_vector_store
 )
 
@@ -44,6 +44,7 @@ def ingest_dataset_to_rag(
         documents.append(document)
 
     log_vector_store.add_documents(documents)
+    log_vector_store.save()
 
     return {
         "dataset": dataset_name,

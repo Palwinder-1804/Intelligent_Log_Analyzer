@@ -1,7 +1,6 @@
 import os
 
 import joblib
-from tensorflow.keras.models import load_model
 
 from app.services.anomaly.lstm_training_service import (
     MODEL_PATH,
@@ -22,6 +21,7 @@ def get_lstm_model():
     if _model is None:
         if not models_exist():
             return None
+        from tensorflow.keras.models import load_model
         _model = load_model(MODEL_PATH)
 
     return _model

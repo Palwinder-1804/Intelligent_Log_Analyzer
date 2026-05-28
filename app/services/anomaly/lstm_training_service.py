@@ -1,18 +1,3 @@
-from tensorflow.keras.models import (
-    Sequential
-)
-
-from tensorflow.keras.layers import (
-    Embedding,
-    LSTM,
-    Dense,
-    Dropout
-)
-
-from tensorflow.keras.utils import (
-    to_categorical
-)
-
 import os
 
 import joblib
@@ -29,6 +14,9 @@ def train_lstm_model(
     X,
     y
 ):
+    from tensorflow.keras.models import Sequential
+    from tensorflow.keras.layers import Embedding, LSTM, Dense, Dropout
+    from tensorflow.keras.utils import to_categorical
 
     vocab_size = len(
         tokenizer.word_index

@@ -1,7 +1,5 @@
 import numpy as np
 
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-
 from app.services.anomaly.embedding_anomaly_service import (
     generate_embedding,
 )
@@ -16,7 +14,7 @@ from app.services.anomaly.semantic_similarity_service import (
 from app.services.anomaly.sequence_builder_service import (
     WINDOW_SIZE,
 )
-from app.services.rag.chroma_service import log_vector_store
+from app.services.rag.vector_store_service import log_vector_store
 
 NEUTRAL_SCORE = 0.5
 
@@ -48,6 +46,7 @@ def _lstm_prediction_confidence(log: str) -> float:
     if len(event_sequence) > WINDOW_SIZE:
         event_sequence = event_sequence[-WINDOW_SIZE:]
 
+    from tensorflow.keras.preprocessing.sequence import pad_sequences
     padded_sequence = pad_sequences(
         [event_sequence],
         maxlen=WINDOW_SIZE,
@@ -94,10 +93,10 @@ def detect_anomaly(log: str):
 
     return {
         "log": log,
-        "prediction_confidence": prediction_confidence,
-        "semantic_similarity": similarity_score,
-        "anomaly_score": anomaly_score,
-        "is_anomaly": is_anomaly,
+        "prediction_confidence": float(prediction_confidence),
+        "semantic_similarity": float(similarity_score),
+        "anomaly_score": float(anomaly_score),
+        "is_anomaly": bool(is_anomaly),
         "severity": severity,
-        "lstm_available": models_exist(),
+        "lstm_available": bool(models_exist()),
     }

@@ -1,3 +1,4 @@
+import asyncio
 from app.services.rag.retrieval_service import (
     retrieve_similar_logs
 )
@@ -13,7 +14,8 @@ from app.services.llm.llm_service import (
 
 async def run_rag_incident_chain(query: str):
 
-    retrieved_docs = retrieve_similar_logs(
+    retrieved_docs = await asyncio.to_thread(
+        retrieve_similar_logs,
         query=query,
         k=5
     )
@@ -30,7 +32,7 @@ async def run_rag_incident_chain(query: str):
         query=query
     )
 
-    response = llm.invoke(prompt)
+    response = await asyncio.to_thread(llm.invoke, prompt)
 
     return {
         "query": query,

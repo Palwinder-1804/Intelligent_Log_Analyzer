@@ -1,11 +1,13 @@
 import os
+from tqdm import tqdm
 
 from langchain_core.documents import Document
 
 from app.services.rag.dataset_loader_service import load_log_dataset
 from app.services.rag.preprocessing_service import clean_logs
 from app.services.rag.chunking_service import chunk_logs
-from app.services.rag.chroma_service import log_vector_store
+from app.services.rag.vector_store_service import log_vector_store
+from app.core.config import settings
 
 DATASETS_ROOT = "datasets"
 LOG_EXTENSIONS = (".log", ".txt")
@@ -39,10 +41,10 @@ def bootstrap_knowledge_base():
 
     print("Initializing RAG knowledge base...")
 
-    all_documents = []
+    total_indexed = 0
 
     for dataset_name, dataset_path in dataset_paths.items():
-        logs = load_log_dataset(dataset_path)
+        logs = load_log_dataset(dataset_path, max_lines=settings.MAX_BOOTSTRAP_LINES)
 
         if not logs:
             print(
@@ -50,25 +52,36 @@ def bootstrap_knowledge_base():
             )
             continue
 
+        num_logs = len(logs)
         cleaned_logs = clean_logs(logs)
-        chunks = chunk_logs(cleaned_logs, chunk_size=10)
+        del logs  # Free memory immediately
 
-        for chunk in chunks:
-            content = "\n".join(chunk)
-            all_documents.append(
-                Document(
-                    page_content=content,
-                    metadata={"source": dataset_name},
-                )
-            )
+        chunks = chunk_logs(cleaned_logs, chunk_size=10)
+        del cleaned_logs  # Free memory immediately
 
         print(
-            f"  Loaded {dataset_name}: {len(logs)} lines -> {len(chunks)} chunks"
+            f"  Loaded {dataset_name}: {num_logs} lines -> {len(chunks)} chunks"
         )
 
-    if all_documents:
-        log_vector_store.add_documents(all_documents)
-        print(f"Knowledge base ready: {len(all_documents)} documents indexed")
+        batch_size = 5000
+        print(f"Indexing chunks from {dataset_name} into FAISS...")
+        for i in tqdm(range(0, len(chunks), batch_size), desc=f"Ingesting {dataset_name}"):
+            batch_chunks = chunks[i:i + batch_size]
+            batch_docs = [
+                Document(
+                    page_content="\n".join(chunk),
+                    metadata={"source": dataset_name},
+                )
+                for chunk in batch_chunks
+            ]
+            log_vector_store.add_documents(batch_docs)
+
+        total_indexed += len(chunks)
+        del chunks  # Free memory
+
+    if total_indexed > 0:
+        log_vector_store.save()
+        print(f"Knowledge base ready: {total_indexed} documents indexed")
     else:
         print(
             "Knowledge base empty: add .log or .txt files under datasets/ "

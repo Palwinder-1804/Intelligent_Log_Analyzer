@@ -1,12 +1,12 @@
-from tensorflow.keras.preprocessing.text import Tokenizer
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-
 import numpy as np
 
 WINDOW_SIZE = 5
 
 
 def build_sequences(event_traces):
+    from tensorflow.keras.preprocessing.text import Tokenizer
+    from tensorflow.keras.preprocessing.sequence import pad_sequences
+
     flattened_sequences = []
 
     for trace in event_traces:

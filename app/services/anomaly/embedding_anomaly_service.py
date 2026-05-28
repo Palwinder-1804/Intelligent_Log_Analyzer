@@ -1,17 +1,9 @@
-from sentence_transformers import SentenceTransformer
-
-from app.core.config import settings
-
-
-embedding_model = SentenceTransformer(
-    settings.EMBEDDING_MODEL
-)
+import numpy as np
+from app.services.rag.embedding_service import embedding_model
 
 
 def generate_embedding(log: str):
-
-    embedding = embedding_model.encode(
-        [log]
-    )[0]
-
-    return embedding
+    # Reuse the langchain HuggingFaceEmbeddings model initialized in embedding_service.py
+    # to avoid loading the model weights twice in memory.
+    embedding = embedding_model.embed_query(log)
+    return np.array(embedding)

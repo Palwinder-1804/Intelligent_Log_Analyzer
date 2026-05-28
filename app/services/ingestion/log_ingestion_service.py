@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 
 from app.models.log_model import (
@@ -6,14 +7,20 @@ from app.models.log_model import (
 )
 
 from app.services.rag.document_service import (
-    create_log_document
+    create_log_chunk_document
 )
 
-from app.services.rag.chroma_service import (
+from app.services.rag.vector_store_service import (
     log_vector_store
 )
 
 from app.services.parsing.log_parser_service import parse_log_line
+
+
+def _sync_ingest_vectors(documents):
+    if documents:
+        log_vector_store.add_documents(documents)
+        log_vector_store.save()
 
 
 async def process_uploaded_log(
@@ -34,6 +41,7 @@ async def process_uploaded_log(
     raw_result = await raw_logs_collection.insert_one(
         raw_log_document
     )
+    raw_log_id = str(raw_result.inserted_id)
 
     parsed_logs = []
 
@@ -46,21 +54,24 @@ async def process_uploaded_log(
 
         parsed_log = parse_log_line(line)
 
-        parsed_log["raw_log_id"] = str(
-            raw_result.inserted_id
-        )
+        parsed_log["raw_log_id"] = raw_log_id
 
         parsed_logs.append(parsed_log)
         
-        document = create_log_document(parsed_log)
-        log_vector_store.add_documents([document])
-
     if parsed_logs:
+        chunk_size = 20
+        documents = [
+            create_log_chunk_document(parsed_logs[i:i + chunk_size], raw_log_id)
+            for i in range(0, len(parsed_logs), chunk_size)
+        ]
+        
+        await asyncio.to_thread(_sync_ingest_vectors, documents)
+
         await parsed_logs_collection.insert_many(
             parsed_logs
         )
 
     return {
-        "raw_log_id": str(raw_result.inserted_id),
+        "raw_log_id": raw_log_id,
         "parsed_logs_count": len(parsed_logs)
-    }
+    }

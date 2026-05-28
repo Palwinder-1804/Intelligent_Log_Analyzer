@@ -23,9 +23,13 @@ async def analyze_root_cause(query: str):
 
     parsed_logs = []
 
-    async for log in parsed_logs_collection.find():
+    cursor = parsed_logs_collection.find().sort("_id", -1).limit(5000)
+
+    async for log in cursor:
 
         parsed_logs.append(log)
+
+    parsed_logs.reverse()
 
     correlated_logs = correlate_incidents(
         parsed_logs

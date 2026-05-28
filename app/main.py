@@ -1,6 +1,14 @@
 import os
 
-# Suppress TensorFlow oneDNN info logs before TF is imported via anomaly routes
+# Suppress TensorFlow oneDNN info logs and optimize CPU memory/threads
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["TF_NUM_INTRAOP_THREADS"] = "1"
+os.environ["TF_NUM_INTEROP_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
 os.environ.setdefault("TF_ENABLE_ONEDNN_OPTS", "0")
 os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
 
@@ -15,7 +23,7 @@ from app.api.routes.logs import router as logs_router
 from app.api.routes.anomaly import router as anomaly_router
 from app.api.routes.rag import router as rag_router
 from app.api.routes.llm import router as llm_router
-from app.services.rag.bootstrap_service import bootstrap_knowledge_base
+
 from app.api.routes.rca import router as rca_router
 
 app = FastAPI(
@@ -33,10 +41,9 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup_event():
-    try:
-        bootstrap_knowledge_base()
-    except Exception as exc:
-        print(f"Knowledge base bootstrap skipped: {exc}")
+    # RAG ingestion has been moved to a separate script (ingest_rag.py)
+    # Run `python ingest_rag.py` before starting the server to ingest data.
+    pass
 
 app.include_router(auth_router)
 app.include_router(user_router)

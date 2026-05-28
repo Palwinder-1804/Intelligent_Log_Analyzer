@@ -6,9 +6,10 @@ __pycache__/
 
 logs/
 
-trained_models/
 
 *.pyc
 
 datasets
 .env.example
+vector_store
+

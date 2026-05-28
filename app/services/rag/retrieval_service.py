@@ -1,4 +1,4 @@
-from app.services.rag.chroma_service import (
+from app.services.rag.vector_store_service import (
     log_vector_store
 )
 

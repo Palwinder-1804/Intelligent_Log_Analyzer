@@ -13,6 +13,7 @@ class Settings(BaseSettings):
 
     OLLAMA_MODEL: str
     EMBEDDING_MODEL: str
+    MAX_BOOTSTRAP_LINES: int = 50000
 
     class Config:
         env_file = ".env"

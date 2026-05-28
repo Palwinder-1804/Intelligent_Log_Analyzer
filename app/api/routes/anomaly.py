@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import (
     APIRouter,
     Depends
@@ -31,7 +32,7 @@ async def detect_log_anomaly(
     current_user=Depends(get_current_user)
 ):
 
-    result = detect_anomaly(request.log)
+    result = await asyncio.to_thread(detect_anomaly, request.log)
 
     await store_anomaly(result)
 
